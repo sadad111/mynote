@@ -1,0 +1,34 @@
+<% include header %>
+
+<div class="container">
+    <div class="row">
+        <table class="table table-striped">
+            <caption><h1>我的笔记列表</h1></caption>
+            <thead>
+            <tr>
+                <th><h2>标题</h2></th>
+                <th><h2>标签</h2></th>
+                <th><h2>日期</h2></th>
+            </tr>
+            </thead>
+            <tbody>
+            <% notes.forEach(function(note) {%>
+            <tr>
+                <td><h6>
+                        <a href="/detail/<%= note._id %>"><%= note.title%></a>
+                    </h6></td>
+                <td><h6><%= note.tag %></h6></td>
+                <td><h6><%= note.createTime %></h6></td>
+            </tr>
+            <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<nav style="text-align: center">
+    <ul class="pagination" id="pagination">
+            <%- pagehtml %>
+    </ul>
+</nav>
+
+<% include footer %>
