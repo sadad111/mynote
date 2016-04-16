@@ -57,7 +57,8 @@ app.use(function(req, res ,next){
     next();
 });
 function authentication(req, res, next) {
-    if (!req.session.user) {
+
+	 if (!req.session.user) {
         req.session.error='请先登陆';
         return res.redirect('/login');
     }
@@ -71,6 +72,11 @@ function notAuthentication(req, res, next) {
     next();
 }
 function divpage(current,req,res){
+
+    if (!req.session.user) {
+        req.session.error='请先登陆';
+        return res.redirect('/login');
+    }
     var user =req.session.user;
     var all=Note.find({author: user.username});
     all.exec(function(err,notes){
@@ -109,7 +115,7 @@ function divpage(current,req,res){
             .exec(function(err, allNotes){
                 if(err) {
                     console.log(err);
-                    return res.redirect("/");
+                    return res.redirect("/search");
                 }
                 res.render('index', {
                     user: req.session.user,
@@ -122,10 +128,10 @@ function divpage(current,req,res){
 
 }
 
-function checkcookies(req,res){
-    var cookies = {}; // 保存请求中所有的cookie数据,之后直接可以cookies.name获取cookie的值
-    var cookieString = req.headers.cookie; // 因为这里直接把cookie的字符串返回了,所以要方便用的话得处理一下
-
+function checkcookies(req,res,next){
+ 
+   var cookies = {}; // 保存请求中所有的cookie数据,之后直接可以cookies.name获取cookie的值
+   var cookieString = req.headers.cookie; // 因为这里直接把cookie的字符串返回了,所以要方便用的话得处理一下
 // 下边解析一下cookie字符串,保存到cookies对象中
     var pairs = cookieString.split(/[;,] */);
     for (var i =0; i < pairs.length; i++){
@@ -134,38 +140,18 @@ function checkcookies(req,res){
         var val = pairs[i].substr(++idx, pairs[i].length).trim();
         cookies[key] = val;
     }
-    if(cookies.user_cookie!=null)
+    if(cookies["user_cookie"]!=null){
+    if(cookies["user_cookie"].length>5)
     {
-        var check =cookies.user_cookie.split("_");
+	console.log(cookies["user_cookie"]!=null);
+	console.log(cookies["user_cookie"]);
+        var check =cookies["user_cookie"].split("_");
         var username=check[0];
         var password=check[1];
-
-        User.findOne({username: username}, function(err , user){
-            if(err) {
-                console.log(err);
-                return res.redirect('/login');
-            }
-            if(!user) {
-                return res.redirect('/login');
-            }
-            //对密码加密
-            var md5 = crypto.createHash('md5'),
-                md5password = md5.update(password).digest('hex');
-
-            if(user.password !== md5password) {
-                return res.redirect('/login');
-            }
-            console.log('登陆成功');
-            user.password = null;
-            delete  user.password;
-            req.session.user = user;
-            divpage(1,req,res);
-        });
+        req.session.user={username: username,password:password}
     }
-    else{
-        res.redirect("/login");
-    }
-
+}
+	next();
 }
 
 
@@ -175,9 +161,14 @@ app.all('/register', notAuthentication);
 app.get('/quit',authentication);
 app.get('/detail',authentication);
 app.get('/post',authentication);
+app.get('/index/:current',authentication);
+//app.get('/',authentication);
 app.get('/',checkcookies)
 //响应首页get请求
-app.get('/',function(req , res){});
+app.get('/',function(req,res){
+	 divpage(1,req,res);
+
+});
 app.get("/index/:current",function(req,res){
     var current = parseInt(req.params.current);
     divpage(current,req,res);
@@ -193,9 +184,9 @@ app.get('/register',function(req , res){
 
 app.post('/register',function(req ,res){
     //req.body可以获取表单各项数据
-    var username = req.body.username,
-        password = req.body.password,
-        passwordRepeat = req.body.passwordRepeat;
+    var username = req.body.user,
+        password = req.body.pwd,
+        passwordRepeat = req.body.repwd;
 
     //检查数据是否存在避免重复注册
     User.findOne({username: username}, function(err , user){
@@ -243,7 +234,7 @@ app.get('/login',function(req , res){
 
 app.post('/login',function(req ,res){
     var username = req.body.username,
-        password = req.body.password;
+        password = req.body.passwd;
     User.findOne({username: username}, function(err , user){
         if(err) {
             console.log(err);
@@ -291,6 +282,7 @@ app.get('/post',function(req , res){
 });
 
 app.post('/post',function(req ,res){
+    console.log(req.body.content);
     var note = new Note ({
         title: req.body.title,
         author: req.session.user.username,
@@ -338,6 +330,7 @@ app.get('/search',function(req , res){
     });
 });
 //监听3000端口
-app.listen(3000, function(req, res){
+
+app.listen(80, function(req, res){
    console.log('app is running at port 3000');
 });

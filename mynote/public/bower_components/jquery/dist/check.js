@@ -14,23 +14,23 @@ $(document).ready(function(){
     checkrepwd();
     $("#remind").fadeOut(2000);
     $("#lgin").click(function(){
-        var check =$("#chk").prop("checked");
+        var check =$("[name='chk']").prop("checked");
         if(check) {
-            var data =$("#username").val()+"_"+$("#passwd").val();
+            var data =$("[name='username']").val()+"_"+$("[name='passwd']").val();
             $.cookie('user_cookie',data, { expires: 7, path: '/' });
         }
         else{
             $.cookie('user_cookie',null);
         }
     })
-    $.backstretch([
-        '../image/1.jpg',
-        '../image/2.jpg',
-        '../image/3.jpg',
-    ], {
-        fade : 1000, // 动画时长
-        duration : 2000 // 切换延时
-    });
+    //$.backstretch([
+    //    '../image/1.jpg',
+    //    '../image/2.jpg',
+    //    '../image/3.jpg',
+    //], {
+    //    fade : 1000, // 动画时长
+    //    duration : 2000 // 切换延时
+    //});
 
 });
 
@@ -45,7 +45,7 @@ function ensure(){
 }
 
 function checkuser(){
-    $("#user").change(function() {
+    $("[name='user']").change(function() {
         var pattern = /[^\w|_]/i;
         var text=$(this).val();
         var test=pattern.exec(text);
@@ -69,7 +69,7 @@ function checkuser(){
 }
 
 function checkpwd(){
-    $("#pwd").change(function() {
+    $("[name='pwd']").change(function() {
         var text=$(this).val();
         var pattern1 = /\d/;
         var pattern2 = /[a-z]/;
@@ -93,8 +93,8 @@ function checkpwd(){
 }
 
 function checkrepwd(){
-    $("#repwd").change(function() {
-        if($(this).val()!=$("#pwd").val()){
+    $("[name='repwd']").change(function() {
+        if($(this).val()!=$("[name='pwd']").val()){
             $("#suggestion_repwd").show();
             $("#suggestion_repwd").fadeOut(2000);
             repwdcheckd = false;

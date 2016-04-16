@@ -2,7 +2,7 @@
 <div class="container">
     <div class="row">
         <div class="col-xs-8 col-xs-offset-2">
-            <div class="text-center page-title"><%= title%></div>
+
             <div class="article-box">
                 <h1 class="text-center"><%= art.title %></h1>
                 <p class="text-center">
@@ -12,7 +12,7 @@
                         <%= moment(art.createTime).locale('zh-cn').format('LL HH:mm:ss')%>
                     </span>
                 </p>
-                <p><%= art.content %></p>
+                <%- art.content %>
             </div>
         </div>
     </div>
