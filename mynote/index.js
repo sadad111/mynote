@@ -8,21 +8,33 @@ var bodyParser = require('body-parser');
 var crypto = require('crypto');
 var session = require('express-session');
 var moment = require('moment');
+
+var orm = require('./waterline/config').orm;
+var config = require("./waterline/config").wlconfig;
 //引入 mongoose
-var mongoose = require('mongoose');
+//var mongoose = require('mongoose');
+//
+////引入模型
+//var model = require('./models/models');
+//
+//
+//
+//var User =model.User;
+//var Note =model.Note;
+//
+////使用 mongoose 连接服务
+//mongoose.connect('mongodb://localhost:27017/notes');
+//mongoose.connection.on('error',console.error.bind(console,'连接数据库失败'));
 
-//引入模型
-var model = require('./models/models');
 
 
-
-var User =model.User;
-var Note =model.Note;
-
-//使用 mongoose 连接服务
-mongoose.connect('mongodb://localhost:27017/notes');
-mongoose.connection.on('error',console.error.bind(console,'连接数据库失败'));
-
+orm.initialize(config, function(err, models) {
+    if (err) {
+        console.error('orm initialize failed.', err);
+        return;
+    }
+    var User = models.collections.user;
+    var Note = models.collections.note;
 
 var pagelengh = 2;
 //express实例
@@ -133,6 +145,7 @@ function checkcookies(req,res,next){
    var cookies = {}; // 保存请求中所有的cookie数据,之后直接可以cookies.name获取cookie的值
    var cookieString = req.headers.cookie; // 因为这里直接把cookie的字符串返回了,所以要方便用的话得处理一下
 // 下边解析一下cookie字符串,保存到cookies对象中
+   if(cookieString != undefined){
     var pairs = cookieString.split(/[;,] */);
     for (var i =0; i < pairs.length; i++){
         var idx = pairs[i].indexOf('=');
@@ -150,6 +163,7 @@ function checkcookies(req,res,next){
         var password=check[1];
         req.session.user={username: username,password:password}
     }
+}
 }
 	next();
 }
@@ -206,13 +220,13 @@ app.post('/register',function(req ,res){
             md5password = md5.update(password).digest('hex');
 
         //新建对象保存
-        var newUser = new User({
+        var newUser = {
             username: username,
             password: md5password,
             createTime: new Date()
-        });
+        };
 
-        newUser.save(function(err, doc) {
+        User.create(newUser,function(err,doc){
             if(err){
                 console.log(err);
                 return res.redirect('/register');
@@ -283,16 +297,16 @@ app.get('/post',function(req , res){
 
 app.post('/post',function(req ,res){
     console.log(req.body.content);
-    var note = new Note ({
+    var note = {
         title: req.body.title,
         author: req.session.user.username,
         tag: req.body.tag,
         content: req.body.content,
         createTime: new Date()
-    });
+    };
 
-    note.save(function(err, doc) {
-        if(err) {
+    Note.create(note,function(err,doc){
+        if(err){
             console.log(err);
             return res.redirect('/post');
         }
@@ -303,8 +317,8 @@ app.post('/post',function(req ,res){
 });
 
 //响应首页get请求
-app.get('/detail/:_id',function(req , res){
-    Note.findOne({_id:req.params._id})
+app.get('/detail/:id',function(req , res){
+    Note.findOne({id:req.params.id})
             .exec(function(err, art){
                 if(err){
                     console.log(err);
@@ -333,4 +347,7 @@ app.get('/search',function(req , res){
 
 app.listen(80, function(req, res){
    console.log('app is running at port 3000');
+});
+
+
 });
